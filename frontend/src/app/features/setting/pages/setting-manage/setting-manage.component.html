@@ -1,0 +1,156 @@
+<div class="card p-4 mb-4">
+  <div class="mb-4">
+    <h2 class="m-0 text-900 font-bold text-2xl">系統參數設定 (Settings)</h2>
+    <span class="text-500 text-sm mt-2 block"
+      >維護系統共用下拉選單與基礎參數配置</span
+    >
+  </div>
+
+  <div class="surface-ground p-4 border-round-lg mb-4">
+    <form [formGroup]="formGroup" class="flex flex-column">
+      <div class="formgrid grid mb-3">
+        <div class="field col-12 md:col-6 lg:col-3 mb-0">
+          <label class="font-bold mb-2 block text-700">資料類型</label>
+          <p-dropdown
+            [options]="dataTypeOptions"
+            formControlName="dataType"
+            placeholder="請選擇 DataType..."
+            [showClear]="true"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          >
+          </p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6 lg:col-3 mb-0">
+          <label class="font-bold mb-2 block text-700">設定種類</label>
+          <p-dropdown
+            [options]="typeOptions"
+            formControlName="type"
+            [placeholder]="
+              formGroup.get('dataType')?.value
+                ? '請選擇設定種類...'
+                : '請先選擇 DataType...'
+            "
+            emptyMessage="查無相關設定種類"
+            [showClear]="true"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          >
+          </p-dropdown>
+        </div>
+        <div class="field col-12 md:col-6 lg:col-3 mb-0">
+          <label class="font-bold mb-2 block text-700">名稱</label>
+          <input
+            pInputText
+            formControlName="name"
+            class="w-full"
+            placeholder="輸入 Name..."
+            (keyup.enter)="onSearch()"
+          />
+        </div>
+        <div class="field col-12 md:col-6 lg:col-3 mb-0">
+          <label for="activeFlag" class="font-bold mb-2 block text-700"
+            >狀態</label
+          >
+          <p-dropdown
+            [options]="activeFlagOptions"
+            formControlName="activeFlag"
+            placeholder="選擇狀態"
+            [showClear]="true"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          >
+          </p-dropdown>
+        </div>
+      </div>
+      <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-300">
+        <p-button
+          label="清除"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="onReset()"
+        ></p-button>
+        <p-button
+          label="查詢"
+          icon="pi pi-search"
+          (onClick)="onSearch()"
+        ></p-button>
+      </div>
+    </form>
+  </div>
+
+  <p-table
+    [value]="tableData"
+    [rows]="10"
+    [paginator]="true"
+    [rowHover]="true"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-between align-items-center">
+        <span class="text-xl font-bold">參數清單</span>
+        <p-button
+          severity="success"
+          label="新增參數"
+          icon="pi pi-plus"
+          (onClick)="openFormDialog('ADD')"
+        ></p-button>
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of cols">{{ col.header }}</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-rowData>
+      <tr>
+        <td>{{ rowData.dataType }}</td>
+        <td>{{ rowData.type }}</td>
+        <td>{{ rowData.name }}</td>
+        <td>{{ rowData.code }}</td>
+        <td>{{ rowData.value }}</td>
+        <td>{{ rowData.priorityNo }}</td>
+        <td>
+          <span
+            class="p-badge"
+            [ngClass]="
+              rowData.activeFlag === 'Y' ? 'p-badge-success' : 'p-badge-danger'
+            "
+          >
+            {{ rowData.activeFlag === "Y" ? "啟用" : "停用" }}
+          </span>
+        </td>
+        <td>
+          <p-button
+            icon="pi pi-pencil"
+            severity="secondary"
+            [rounded]="true"
+            [text]="true"
+            (onClick)="openFormDialog('EDIT', rowData)"
+          ></p-button>
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            [rounded]="true"
+            [text]="true"
+            (onClick)="deleteSetting(rowData)"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="cols.length" class="text-center p-5 text-500">
+          查無資料
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

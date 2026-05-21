@@ -1,0 +1,58 @@
+[
+  {
+    "id": "",
+    "label": "SYSTEM",
+    "value": "SYSTEM",
+    "labelTw": "系統",
+    "labelCn": "系统",
+    "labelUs": "System"
+  },
+  {
+    "id": "",
+    "label": "SPEC",
+    "value": "SPEC",
+    "labelTw": "規範",
+    "labelCn": "规范",
+    "labelUs": "Specification"
+  },
+   {
+    "id": "",
+    "label": "TOPIC",
+    "value": "TOPIC",
+    "labelTw": "主題",
+    "labelCn": "主题",
+    "labelUs": "Topic"
+  },
+  {
+    "id": "",
+    "label": "KNOWLEDGE",
+    "value": "KNOWLEDGE",
+    "labelTw": "知識",
+    "labelCn": "知识",
+    "labelUs": "Knowledge"
+  },
+  {
+    "id": "",
+    "label": "YESNO",
+    "value": "YES_NO",
+    "labelTw": "YES_NO",
+    "labelCn": "YES_NO",
+    "labelUs": "YES_NO"
+  },
+  {
+    "id": "",
+    "label": "CUSTOMISATION",
+    "value": "CUSTOMISATION",
+    "labelTw": "個人化配置",
+    "labelCn": "个人化配置",
+    "labelUs": "Customisation"
+  },
+  {
+    "id": "",
+    "label": "TEST",
+    "value": "TEST",
+    "labelTw": "測試",
+    "labelCn": "测试",
+    "labelUs": "Test"
+  }
+]

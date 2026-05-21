@@ -1,0 +1,27 @@
+<div
+  class="layout-wrapper"
+  [ngClass]="{ 'layout-sidebar-active': isSidebarActive }"
+>
+  <div class="layout-topbar">
+    <button class="menu-button" (click)="toggleSidebar()">
+      <i class="pi pi-bars text-2xl"></i>
+    </button>
+    <div class="topbar-logo">
+      <i class="pi pi-sparkles text-primary mr-2"></i>
+      <span class="font-bold text-xl">企業大腦 RAG</span>
+    </div>
+  </div>
+  <app-sidebar [isMobileActive]="isSidebarActive" ></app-sidebar>
+
+  <div
+    class="layout-mask"
+    *ngIf="isSidebarActive"
+    (click)="closeSidebar()"
+  ></div>
+
+  <main class="layout-main">
+    <div class="main-content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

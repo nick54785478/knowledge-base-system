@@ -1,0 +1,36 @@
+/* You can add global styles to this file, and also import other style files */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--p-font-family, system-ui, sans-serif);
+}
+// 必填
+.required {
+  &::after {
+    content: " * ";
+    color: red;
+    font-size: 1.2rem;
+    line-height: 1rem;
+  }
+}
+
+/* 全域表單錯誤訊息樣式 (Global Error Message)*/
+.p-error {
+  color: #ef4444 !important; /* 採用企業標準警示紅 (對應 Tailwind 的 red-500)，加 !important 避免被其他主題覆蓋 */
+  font-size: 0.875rem; /* 字體稍微縮小 (14px)，避免喧賓奪主 */
+  margin-top: 0.35rem; /* 與上方的 Input 框拉開一點點呼吸空間 */
+  display: block; /* 確保它會自動換行獨佔一行，不會跟別人擠在一起 */
+  font-weight: 500; /* 微微加粗提升辨識度 */
+}
+
+/* Elasticsearch 關鍵字高亮樣式*/
+.highlight {
+  // background-color: #ffeb3b; /* 耀眼的螢光黃底色 */
+  color: #d32f2f; /* 醒目的深紅色字體 */
+  font-weight: bold; /* 字體加粗 */
+  font-style: normal; /* 🌟 取消 em 預設的斜體，改回正體字 */
+  // padding: 2px 4px; /* 增加內距，讓色塊包覆感更好 */
+  // margin: 0 2px; /* 讓相鄰的高亮字不要全黏在一起 */
+  border-radius: 4px; /* 現代感的圓角設計 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 加上微小的立體陰影 */
+}

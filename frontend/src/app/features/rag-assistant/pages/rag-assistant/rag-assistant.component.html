@@ -1,0 +1,118 @@
+<div class="gemini-layout bg-white h-full flex flex-column relative">
+  <div class="flex align-items-center px-5 py-3 border-bottom-1 surface-border">
+    <i class="pi pi-sparkles text-2xl mr-2" style="color: #1a73e8"></i>
+    <h2 class="m-0 text-xl font-medium text-800">Virgo 企業大腦</h2>
+  </div>
+
+  <div
+    class="chat-window flex-grow-1 overflow-y-auto px-4 py-5"
+    #chatScrollContainer
+  >
+    <div class="chat-container mx-auto" style="max-width: 850px">
+      <div
+        *ngFor="let msg of messages"
+        class="flex w-full mb-5"
+        [ngClass]="{
+          'justify-content-end': msg.role === 'user',
+          'justify-content-start': msg.role === 'assistant',
+        }"
+      >
+        <div
+          *ngIf="msg.role === 'assistant'"
+          class="ai-avatar mr-4 mt-1 flex-shrink-0 shadow-1"
+        >
+          <i class="pi pi-sparkles text-white text-xl"></i>
+        </div>
+
+        <div
+          class="message-content"
+          [ngClass]="{
+            'user-message surface-100 text-900 px-4 py-3': msg.role === 'user',
+            'ai-message text-800 line-height-3 text-lg':
+              msg.role === 'assistant',
+            'w-full':
+              msg.role === 'assistant' && msg.content === '' && msg.isStreaming,
+          }"
+        >
+          <ng-container
+            *ngIf="
+              msg.role === 'assistant' && msg.content === '' && msg.isStreaming;
+              else normalMessage
+            "
+          >
+            <div class="gemini-thinking-skeleton">
+              <div class="skeleton-line short"></div>
+              <div class="skeleton-line medium"></div>
+              <div class="skeleton-line long"></div>
+            </div>
+          </ng-container>
+
+          <ng-template #normalMessage>
+            <span class="white-space-pre-wrap">{{ msg.content }}</span>
+            <span
+              *ngIf="msg.isStreaming && msg.content !== ''"
+              class="streaming-cursor"
+            ></span>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-wrapper px-4 pb-4 pt-2">
+    <div
+      class="input-container mx-auto surface-ground flex flex-column transition-all"
+      style="max-width: 850px"
+    >
+      <div class="px-3 pt-2 pb-0">
+        <p-autoComplete
+          [(ngModel)]="selectedTags"
+          name="tags"
+          [multiple]="true"
+          [typeahead]="false"
+          [disabled]="isGenerating"
+          placeholder="添加知識庫檢索標籤 (Enter)..."
+          styleClass="w-full borderless-autocomplete"
+        ></p-autoComplete>
+      </div>
+
+      <div class="flex align-items-end px-3 pb-2">
+        <textarea
+          pTextarea
+          [(ngModel)]="question"
+          name="question"
+          [autoResize]="true"
+          rows="1"
+          (keydown)="onKeydown($event)"
+          placeholder="向 Virgo 提問..."
+          [disabled]="isGenerating"
+          class="border-none w-full bg-transparent shadow-none outline-none text-lg px-2 py-2"
+          style="resize: none; max-height: 200px"
+        ></textarea>
+
+        <div class="flex-shrink-0 ml-2 mb-1">
+          <button
+            *ngIf="isGenerating"
+            pButton
+            icon="pi pi-stop-circle"
+            class="p-button-rounded p-button-text p-button-secondary text-2xl"
+            (click)="stopGenerating()"
+          ></button>
+          <button
+            *ngIf="!isGenerating"
+            pButton
+            icon="pi pi-send"
+            class="p-button-rounded p-button-text text-2xl"
+            [ngClass]="{ 'text-300': !question, 'text-primary': question }"
+            (click)="sendMessage()"
+            [disabled]="!question"
+          ></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-3 text-500 text-sm">
+      Virgo 產生的內容可能不準確，請遵守公司 AI 使用規範，機密資料請勿外流。
+    </div>
+  </div>
+</div>

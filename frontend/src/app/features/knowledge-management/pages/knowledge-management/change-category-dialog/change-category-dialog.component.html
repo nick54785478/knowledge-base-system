@@ -1,0 +1,34 @@
+<div class="flex flex-column gap-3 pt-2">
+  <p class="m-0 text-gray-600">
+    正在將文檔
+    <span class="font-bold text-primary" [innerHTML]="documentTitle"></span>
+    轉移至新分類。
+  </p>
+
+  <p-dropdown
+    [options]="categoryOptions"
+    [formControl]="categoryControl"
+    placeholder="請選擇新分類"
+    optionLabel="label"
+    optionValue="value"
+    appendTo="body"
+    styleClass="w-full"
+  >
+  </p-dropdown>
+
+  <div class="flex justify-content-end gap-2 pt-3 mt-2 border-top-1 border-300">
+    <p-button
+      label="取消"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
+      label="確認轉移"
+      icon="pi pi-folder-open"
+      (onClick)="submit()"
+      [disabled]="categoryControl.invalid"
+    ></p-button>
+  </div>
+</div>

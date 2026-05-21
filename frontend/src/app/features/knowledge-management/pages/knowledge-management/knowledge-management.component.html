@@ -1,0 +1,142 @@
+<div class="card p-4">
+  <div class="flex justify-content-between align-items-start mb-4">
+    <div>
+      <h2 class="m-0 text-900 font-bold text-2xl">
+        知識庫管理 (Knowledge Management)
+      </h2>
+      <span class="text-500 text-sm mt-2 block"
+        >檢索、維護與管理企業內部的 RAG 知識文檔</span
+      >
+    </div>
+    <p-button
+      severity="success"
+      label="新增"
+      icon="pi pi-plus"
+      (onClick)="showAddDialog()"
+    >
+    </p-button>
+  </div>
+
+  <div class="surface-ground p-4 border-round-lg mb-4">
+    <form [formGroup]="formGroup" class="flex flex-column">
+      <div class="formgrid grid mb-3">
+        <div class="field col-12 md:col-6 lg:col-4 mb-0">
+          <label for="keyword" class="font-bold mb-2 block text-700"
+            >關鍵字搜尋</label
+          >
+          <div class="p-inputgroup">
+            <span class="p-inputgroup-addon">
+              <i class="pi pi-search"></i>
+            </span>
+            <input
+              pInputText
+              id="keyword"
+              formControlName="keyword"
+              placeholder="請輸入標題或內容..."
+              (keyup.enter)="onSearch()"
+            />
+          </div>
+        </div>
+
+        <div class="field col-12 md:col-6 lg:col-4 mb-0">
+          <label for="category" class="required font-bold mb-2 block text-700"
+            >文章分類</label
+          >
+          <p-dropdown
+            [options]="categoryOptions"
+            formControlName="category"
+            placeholder="請選擇分類"
+            [showClear]="true"
+            optionLabel="label"
+            optionValue="value"
+            styleClass="w-full"
+          >
+          </p-dropdown>
+          <div *ngIf="formControlInvalid('category')">
+            <small class="p-error"> 資料不能為空 </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-300">
+        <p-button
+          label="清除"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="onReset()"
+        >
+        </p-button>
+        <p-button label="查詢" icon="pi pi-search" (onClick)="onSearch()">
+        </p-button>
+      </div>
+    </form>
+  </div>
+
+  <p-table
+    [value]="tableData"
+    [rows]="10"
+    [paginator]="true"
+    [rowHover]="true"
+    dataKey="id"
+    styleClass="p-datatable-sm"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th *ngFor="let col of cols">{{ col.header }}</th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-doc>
+      <tr>
+        <td *ngFor="let col of cols" [ngSwitch]="col.field">
+          <ng-container *ngSwitchCase="'highlightedTitle'">
+            <span [innerHTML]="doc[col.field]"></span>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'category'">
+            <span class="p-badge p-badge-info">{{ doc[col.field] }}</span>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="'actions'">
+            <p-button
+              icon="pi pi-pencil"
+              severity="secondary"
+              [rounded]="true"
+              [text]="true"
+              (onClick)="clickRowActionMenu(doc)"
+            />
+            <p-button
+              icon="pi pi-folder-open"
+              [text]="true"
+              severity="info"
+              pTooltip="變更分類"
+              tooltipPosition="top"
+              (onClick)="openChangeCategoryDialog(doc)"
+            />
+            <p-button
+              icon="pi pi-trash"
+              severity="danger"
+              [rounded]="true"
+              [text]="true"
+              (onClick)="onDelete(doc.id)"
+            />
+          </ng-container>
+
+          <ng-container *ngSwitchDefault>
+            {{ doc[col.field] }}
+          </ng-container>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td [attr.colspan]="cols.length" class="text-center p-5 text-500">
+          <i class="pi pi-inbox text-4xl mb-3 block text-300"></i>
+          目前搜尋條件下無文檔紀錄，請重新輸入或建立新文檔。
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

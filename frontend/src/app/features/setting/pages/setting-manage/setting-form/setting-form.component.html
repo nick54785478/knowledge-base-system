@@ -1,0 +1,122 @@
+<form [formGroup]="formGroup" class="mt-4">
+  <div class="formgrid grid mb-4">
+    <div class="field col-12 md:col-6 lg:col-6 mb-0">
+      <label for="activeFlag" class="required font-bold mb-2 block text-700"
+        >資料種類</label
+      >
+      <p-dropdown
+        [options]="dataTypeOptions"
+        formControlName="dataType"
+        placeholder="選擇 Data Type"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+        [readonly]="action === 'EDIT'"
+      >
+      </p-dropdown>
+    </div>
+
+    <div class="field col-12 md:col-6 mb-0 mt-4 md:mt-0">
+      <label class="font-bold mb-2 block"
+        >種類 (Type) <span class="text-red-500">*</span></label
+      >
+      <input
+        type="text"
+        pInputText
+        formControlName="type"
+        class="w-full"
+        placeholder="例: DROPDOWN"
+      />
+      <small class="p-error" *ngIf="isFieldInvalid('type')">必填欄位</small>
+    </div>
+  </div>
+
+  <div class="formgrid grid mb-4">
+    <div class="field col-12 md:col-6 mb-0">
+      <label class="font-bold mb-2 block"
+        >名稱 (Name) <span class="text-red-500">*</span></label
+      >
+      <input
+        type="text"
+        pInputText
+        formControlName="name"
+        class="w-full"
+        placeholder="UI 顯示名稱"
+      />
+      <small class="p-error" *ngIf="isFieldInvalid('name')">必填欄位</small>
+    </div>
+    <div class="field col-12 md:col-6 mb-0 mt-4 md:mt-0">
+      <label class="font-bold mb-2 block"
+        >代碼 (Code) <span class="text-red-500">*</span></label
+      >
+      <input
+        type="text"
+        pInputText
+        formControlName="code"
+        class="w-full"
+        placeholder="存入 DB 的代碼"
+      />
+      <small class="p-error" *ngIf="isFieldInvalid('code')">必填欄位</small>
+    </div>
+  </div>
+
+  <div class="formgrid grid mb-4">
+    <div class="field col-12 md:col-6 mb-0">
+      <label class="font-bold mb-2 block">值 (Value)</label>
+      <input type="text" pInputText formControlName="value" class="w-full" />
+    </div>
+    <div class="field col-12 md:col-6 mb-0 mt-4 md:mt-0">
+      <label class="font-bold mb-2 block">順序號 (PriorityNo)</label>
+      <p-inputNumber
+        formControlName="priorityNo"
+        class="w-full block"
+        styleClass="w-full"
+        [min]="1"
+      ></p-inputNumber>
+    </div>
+  </div>
+
+  <div class="formgrid grid mb-4">
+    <div class="field col-12 md:col-6 lg:col-6 mb-0" *ngIf="action === 'EDIT'">
+      <label for="activeFlag" class="required font-bold mb-2 block text-700"
+        >狀態</label
+      >
+      <p-dropdown
+        [options]="activeFlagOptions"
+        formControlName="activeFlag"
+        placeholder="選擇狀態"
+        [showClear]="true"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+      >
+      </p-dropdown>
+    </div>
+  </div>
+
+  <div class="field mb-4">
+    <label class="font-bold mb-2 block">描述 (Description)</label>
+    <textarea
+      pTextarea
+      formControlName="description"
+      rows="3"
+      class="w-full"
+    ></textarea>
+  </div>
+
+  <div class="flex justify-content-end gap-2 pt-3 border-top-1 border-300">
+    <p-button
+      label="取消"
+      icon="pi pi-times"
+      severity="secondary"
+      [outlined]="true"
+      (onClick)="cancel()"
+    ></p-button>
+    <p-button
+      [label]="action === 'ADD' ? '確認新增' : '更新儲存'"
+      icon="pi pi-check"
+      (onClick)="submitForm()"
+    ></p-button>
+  </div>
+</form>
