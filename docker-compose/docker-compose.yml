@@ -1,0 +1,172 @@
+version: "3.8"
+
+# 定義全局網路，讓 CDC 組件與 ELK 組件能互相連線
+networks:
+  cdc-elk-net:
+    driver: bridge
+
+# 定義全局資料卷，確保重啟不會遺失資料
+volumes:
+  es_data:
+    driver: local
+  es_data_v9:
+    driver: local
+  pg_data:
+    driver: local
+  ollama_data: # 💡 新增：用來持久化儲存 Ollama 下載的 AI 模型
+    driver: local
+
+services:
+  # ==========================================
+  # 關聯式資料庫 (Command Side - Source of Truth)
+  # ==========================================
+  postgres:
+    image: postgres:15
+    container_name: kb_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kb_master
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical" # 開啟邏輯複製 (CDC 必備)
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - cdc-elk-net
+
+  # ==========================================
+  # 訊息佇列 (Kafka KRaft 模式 - 免 Zookeeper)
+  # ==========================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kb_kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    networks:
+      - cdc-elk-net
+
+  # UI 管理介面 - 觀測 Kafka Topic 與訊息
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kb_kafka_ui
+    depends_on:
+      - kafka
+    ports:
+      - "8028:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+    networks:
+      - cdc-elk-net
+
+  # ==========================================
+  # CDC 異動資料擷取 (Debezium)
+  # ==========================================
+  debezium-connect:
+    image: debezium/connect:2.6
+    container_name: kb_debezium_connect
+    depends_on:
+      - kafka
+      - postgres
+    ports:
+      - "8083:8083" # 開放給 REST API 註冊 Connector 用
+    environment:
+      BOOTSTRAP_SERVERS: kafka:9092
+      GROUP_ID: 1
+      CONFIG_STORAGE_TOPIC: debezium_connect_configs
+      OFFSET_STORAGE_TOPIC: debezium_connect_offsets
+      STATUS_STORAGE_TOPIC: debezium_connect_status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+    networks:
+      - cdc-elk-net
+
+  # ==========================================
+  # 全文檢索與日誌平台 (Query 端)
+  # ==========================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.2.8
+    container_name: kb_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "19200:9200"
+    volumes:
+    # - es_data:/usr/share/elasticsearch/data
+      - es_data_v9:/usr/share/elasticsearch/data
+    networks:
+      - cdc-elk-net
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.2.8
+    container_name: kb_kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - cdc-elk-net
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.2.8
+    container_name: kb_logstash
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - cdc-elk-net
+
+  # ==========================================
+  # 💡 本地端大型語言模型 (Local LLM & Embedding)
+  # ==========================================
+  ollama:
+    image: ollama/ollama:latest
+    container_name: kb_ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - cdc-elk-net
+
+    # 效能提醒：如果你是 Windows WSL2 或是 Linux，且電腦有 NVIDIA 顯示卡，
+    # 並且已安裝 NVIDIA Container Toolkit，可以把下面的註解解開，讓 AI 跑得快 10 倍！
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]

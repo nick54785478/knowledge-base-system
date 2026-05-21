@@ -1,0 +1,15 @@
+-- 1. 建立實體資料表
+CREATE TABLE knowledge_document (
+    id VARCHAR(36) PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    author VARCHAR(100),
+    category VARCHAR(50),
+    status VARCHAR(50),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+);
+
+-- 2. 🌟 關鍵：設定 WAL (Write-Ahead Logging) 的層級
+-- 這行是告訴 Postgres：「當這張表有任何異動時，請把舊資料跟新資料都寫進日誌裡，讓 CDC 抓得到」
+ALTER TABLE knowledge_document REPLICA IDENTITY DEFAULT;
