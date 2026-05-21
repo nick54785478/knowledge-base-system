@@ -1,12 +1,12 @@
 # Enterprise RAG Knowledge Base Backend (企業級智能知識庫後端)
 
-這是一個基於 六角形架構 (Hexagonal Architecture) 與 CQRS (命令查詢職責分離) 模式打造的企業級智能知識庫與 RAG (Retrieval-Augmented Generation) 助理系統，本專案不僅提供基礎的 CRUD 功能，更結合了 CDC (變更資料擷取) 技術與 本地端大語言模型 (Local LLM)，實現了從關聯式資料庫到向量資料庫的「自動化語意擴充」與「即時串流問答」。
+這是一個基於 六角形架構 (Hexagonal Architecture) 與 CQRS (命令查詢職責分離) 模式打造的企業級智能知識庫與 RAG (Retrieval-Augmented Generation) 助理系統，本專案不僅提供基礎的 CRUD 功能，更結合了 CDC (變更資料擷取) 技術與 本地端大語言模型 (Local LLM)，實現了從關聯式資料庫到向量資料庫的「自動化語意擴充」，並透過 WebSocket 提供低延遲的「即時打字機串流問答」。
 
 ## 系統架構亮點
 
 * **六角形架構 (Ports and Adapters)**：
 
-> 核心業務邏輯被嚴格保護在 Domain 與 Application 領域，與外部基礎建設（如資料庫、AI 服務、Message Broker）完全解耦。
+> 核心業務邏輯被嚴格保護在 Domain 與 Application 領域，與外部基礎建設（如資料庫、AI 服務、Message Broker）完全解耦，確保系統的高可測試性與可維護性。
 
 * **CQRS 讀寫分離**：
 
@@ -17,14 +17,18 @@
 
 > 透過 Debezium 監聽 PostgreSQL 的 WAL，並經由 Kafka 派發事件。Logstash 負責基礎文本同步，而 Java 後端負責呼叫 AI 進行向量計算與 Partial Update。
 
+* **Append-Only 稽核軌跡 (Audit Log)**
+
+> 針對企業級合規需求，實作了具備不可變性 (Immutable) 的稽核日誌。每次文檔的 CRUD 異動皆會以 JSON Snapshot 的形式留下防篡改的歷史軌跡。
+
 * **優雅重試與容錯 (Graceful Retry)**：
 
-> 針對分散式系統中常見的 Race Condition (如 Logstash 寫入延遲導致 ES 找不到文檔)，實作了具備 Exponential Backoff 思維的重試機制，確保資料最終一致性。
+> 針對分散式系統中常見的 Race Condition (如 Logstash 寫入延遲導致 ES 找不到文檔)，實作了具備 Exponential Backoff 思維的重試機制，與樂觀鎖 (Optimistic Locking)，確保資料最終一致性。
 
 
 ## 技術堆疊 (Tech Stack)
 
-* **核心框架**：Java 21, Spring Boot 4.0.6, Spring WebFlux
+* **核心框架**：Java 21, Spring Boot 4.0.6, Spring MVC / WebSocket
 
 * **AI 整合**：Spring AI (2.0.0-M3)
 
@@ -44,15 +48,15 @@
 
 * **高精準度語意搜尋 (Semantic Search)**:
 
-> 利用 Elasticsearch 的 KNN 演算法，支援 numCandidates 擴展與 Source Filtering，以極低的網路 I/O 成本提供極高的檢索召回率。
+> 利用 Elasticsearch 的 KNN 演算法，支援 numCandidates 候選集擴展與 Source Filtering 網路優化。並支援 Tags 預先過濾 (Pre-filtering)，在計算向量距離前先以倒排索引精準縮小檢索範圍。
 
 * **RAG 智能問答 (防幻覺機制)**:
 
-> 結合 System Prompt 嚴格限制 AI 僅能根據企業知識庫的內容回答。若無相關資料，系統會優雅地回覆無法回答，拒絕捏造事實。
+> 結合 System Prompt 嚴格限制 AI 僅能根據企業知識庫的檢索內容回答。若無相關資料，系統會優雅地回覆無法回答，拒絕捏造事實，確保企業資訊的準確性。
 
-* **SSE 串流輸出 (Server-Sent Events)**:
+* **WebSocket 雙向通訊串流 (Real-time Streaming)**:
 
-> 實作 Flux 非同步資料流，讓 AI 生成的字元能像「打字機」一般即時推播至前端，提供零等待的順暢使用者體驗 (Time to First Token < 1s)。
+> 捨棄傳統的 HTTP 請求，採用全雙工的 WebSocket 建立連線。讓 AI 生成的字元能像「打字機」一般即時推播至前端，並透過 [DONE] 標記實現精準的狀態控制，提供零等待的順暢使用者體驗 (Time to First Token < 1s)。
 
 ## 快速啟動 (Getting Started)
 
@@ -113,7 +117,17 @@
 	  "category": "財務規範"
 	}
 	
-* RAG 串流問答 (請透過瀏覽器或支援 SSE 的客戶端)
+* RAG WebSocket 串流問答測試
 
-	GET http://localhost:8080/api/v1/assistant/ask-stream?q=下週去德國參展五天，可以補助多少？
+請使用支援 WebSocket 的客戶端 (如 Postman 或前端 Angular App) 連線至：
 	
+	ws://localhost:8080/api/v1/assistant/ws
+
+連線成功後，發送以下 JSON 格式進行提問：
+
+	{
+	  "question": "下週去德國參展五天，可以補助多少？",
+	  "tags": ["出差"]
+	}
+	
+系統將即時回傳 AI 分析後的串流文字片段。
