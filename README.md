@@ -1,4 +1,4 @@
-# RAG Knowledge Base Backend (RAG 智能知識庫)
+# RAG Knowledge Base System (RAG 智能知識庫系統)
 
 這是一個基於 六角形架構 (Hexagonal Architecture) 與 CQRS (命令查詢職責分離) 模式打造的企業級智能知識庫與 RAG (Retrieval-Augmented Generation) 助理系統，本專案不僅提供基礎的 CRUD 功能，更結合了 CDC (變更資料擷取) 技術與 本地端大語言模型 (Local LLM)，實現了從關聯式資料庫到向量資料庫的「自動化語意擴充」，並透過 WebSocket 提供低延遲的「即時打字機串流問答」。
 
