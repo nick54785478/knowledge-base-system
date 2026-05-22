@@ -10,7 +10,7 @@ import com.example.demo.application.shared.command.CreateSettingCommand;
 import com.example.demo.application.shared.command.UpdateSettingCommand;
 import com.example.demo.application.shared.dto.OptionQueried;
 import com.example.demo.application.shared.dto.SettingQueried;
-import com.example.demo.config.MapStructConfiguration;
+import com.example.demo.config.config.MapStructConfiguration;
 import com.example.demo.iface.dto.req.CreateSettingResource;
 import com.example.demo.iface.dto.req.UpdateSettingResource;
 

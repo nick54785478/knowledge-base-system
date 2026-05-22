@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.config.config;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.example.demo.config;
+package com.example.demo.config.config;
 
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
