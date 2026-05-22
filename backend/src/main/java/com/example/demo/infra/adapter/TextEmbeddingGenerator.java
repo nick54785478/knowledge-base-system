@@ -27,6 +27,12 @@ class TextEmbeddingGenerator implements TextEmbeddingGeneratorPort {
 	 */
 	private final EmbeddingModel embeddingModel;
 
+	/**
+	 * 生成文本的向量表示
+	 * 
+	 * @param text 要轉換的文本內容 (實務上通常為標題與內文的組合)
+	 * @return 浮點數陣列形式的向量 (維度大小取決於具體使用的模型，例如 nomic-embed-text 為 768 維)
+	 */
 	@Override
 	public float[] embed(String text) {
 		log.debug("正在呼叫本地端 Ollama (Spring AI) 進行向量計算...");

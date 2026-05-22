@@ -17,6 +17,12 @@ class SystemDictionaryAdpater implements SystemDictionaryPort {
 
 	private SettingRepository settingRepository;
 
+	/**
+	 * 根據代碼取得分類中文名稱 (建議底層實作加上 @Cacheable 快取)
+	 * 
+	 * @param code 分類代碼
+	 * @return 分類中文名
+	 */
 	@Override
 	public String getCategoryNameByCode(String code) {
 		Setting setting = settingRepository.findByCode(code);

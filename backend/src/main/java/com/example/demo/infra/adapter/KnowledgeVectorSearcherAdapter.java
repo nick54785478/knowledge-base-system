@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import com.example.demo.application.port.KnowledgeVectorSearcherPort;
 import com.example.demo.application.shared.view.KnowledgeDocumentView;
+import com.example.demo.infra.es.constant.KnowledgeIndexConstants;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.FieldValue;
@@ -35,8 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 class KnowledgeVectorSearcherAdapter implements KnowledgeVectorSearcherPort {
 
-	private final ElasticsearchClient esClient;
 	private final String indexName;
+	private final ElasticsearchClient esClient;
 
 	/**
 	 * 建構子注入
@@ -81,7 +82,7 @@ class KnowledgeVectorSearcherAdapter implements KnowledgeVectorSearcherPort {
 				if (tags != null && !tags.isEmpty()) {
 					List<FieldValue> tagValues = tags.stream().map(FieldValue::of).toList();
 
-					// 💡 維運除錯提示：如果前端有傳 Tags 但 ES 卻搜不到東西，
+					// 維運除錯提示：如果前端有傳 Tags 但 ES 卻搜不到東西，
 					// 請檢查 ES Mapping 中 tags 欄位是否為 keyword。若是 text 型別，需改為 t.field("tags.keyword")
 					k.filter(f -> f.terms(t -> t.field("tags").terms(t2 -> t2.value(tagValues))));
 				}
@@ -127,18 +128,18 @@ class KnowledgeVectorSearcherAdapter implements KnowledgeVectorSearcherPort {
 		String id = hit.id();
 
 		// 1. 防禦性解析：使用自定義的 getOrDefault 避免舊資料缺失欄位導致的 NullPointerException
-		String title = getOrDefault(source, "title", "無標題");
-		String content = getOrDefault(source, "content", "");
-		String author = getOrDefault(source, "author", "系統預設");
+		String title = getOrDefault(source, KnowledgeIndexConstants.FIELD_TITLE, "無標題");
+		String content = getOrDefault(source, KnowledgeIndexConstants.FIELD_CONTENT, "");
+		String author = getOrDefault(source, KnowledgeIndexConstants.FIELD_AUTHOR, "系統預設");
 
 		// 分類代碼 (如: INFO_SECURITY)
-		String category = getOrDefault(source, "category", "通用");
+		String category = getOrDefault(source, KnowledgeIndexConstants.FIELD_CATEGORY, "通用");
 		// 分類名稱 (如: 資訊安全)。若舊資料尚未被 CDC (Change Data Capture) 同步寫入此欄位，則退回顯示代碼
-		String categoryName = getOrDefault(source, "categoryName", category);
+		String categoryName = getOrDefault(source, KnowledgeIndexConstants.FIELD_CATEGORY_NAME, category);
 
 		// 2. 安全解析 JSON Array (Tags)
 		List<String> documentTags = new ArrayList<>();
-		Object tagsObj = source.get("tags");
+		Object tagsObj = source.get(KnowledgeIndexConstants.FIELD_TAGS);
 		if (tagsObj instanceof List<?> list) {
 			documentTags = list.stream().map(String::valueOf).collect(Collectors.toList());
 		}

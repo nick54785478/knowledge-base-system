@@ -39,7 +39,7 @@ import co.elastic.clients.transport.rest_client.RestClientTransport;
 public class DirectEsConfiguration {
 
 	/**
-	 * 1. 建立最底層的 HTTP 通訊客戶端 (Apache HttpAsyncClient)
+	 * 建立最底層的 HTTP 通訊客戶端 (Apache HttpAsyncClient)
 	 * <p>
 	 * 這裡是發送 HTTP 請求的最後一關。我們在此處掛載了一個 {@link HttpRequestInterceptor}， 在封包即將離開 JVM
 	 * 前，強制攔截並修改 Headers。
@@ -82,7 +82,7 @@ public class DirectEsConfiguration {
 	}
 
 	/**
-	 * 2. 建立資料傳輸層 (Transport Layer)
+	 * 建立資料傳輸層 (Transport Layer)
 	 * <p>
 	 * 負責將高階的 Java 物件與底層的 JSON 字串進行轉換。 這裡明確指定使用 Spring Boot 生態中最穩定的 Jackson 作為 JSON
 	 * 解析器。
@@ -97,7 +97,7 @@ public class DirectEsConfiguration {
 	}
 
 	/**
-	 * 3. 建立高階客戶端 (High-level Client)
+	 * 建立高階客戶端 (High-level Client)
 	 * <p>
 	 * 只要將這個 Bean 註冊進 Spring 容器，Spring Data Elasticsearch 底層的 Repository (如
 	 * ArticleRepository) 就會自動取得並使用它來執行所有資料庫操作。
