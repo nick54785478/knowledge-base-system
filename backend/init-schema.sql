@@ -55,3 +55,9 @@ CREATE TABLE setting (
     active_flag VARCHAR(1) DEFAULT 'Y',
     PRIMARY KEY (id)
 );
+
+CREATE TABLE system_checkpoint (
+	config_key VARCHAR(255),
+	config_value VARCHAR(255),
+	PRIMARY KEY (config_key)
+)
