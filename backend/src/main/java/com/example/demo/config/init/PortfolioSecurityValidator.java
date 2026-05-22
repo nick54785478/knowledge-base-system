@@ -42,7 +42,7 @@ public class PortfolioSecurityValidator implements ApplicationRunner {
 			abortStartup("Portfolio Token 驗證失敗，憑證不符");
 		}
 
-		log.info("[Security] 系統授權驗證成功，Virgo 企業大腦已啟動。");
+		log.info("[Security] 系統授權驗證成功，RAG 智能大腦已啟動。");
 	}
 
 	private void abortStartup(String reason) {
