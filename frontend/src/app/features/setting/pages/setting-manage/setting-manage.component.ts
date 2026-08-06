@@ -168,10 +168,6 @@ export class SettingManageComponent
    * 刪除設定
    * @param rowData 列資料
    */
-  /**
-   * 刪除設定
-   * @param rowData 列資料
-   */
   deleteSetting(rowData: any) {
     this.dialogConfirmService.confirmDelete(
       async () => {

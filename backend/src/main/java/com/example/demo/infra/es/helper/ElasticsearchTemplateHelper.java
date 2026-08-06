@@ -9,6 +9,10 @@ import com.example.demo.infra.shared.exception.KnowledgeSearchException;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryRequest;
+import co.elastic.clients.elasticsearch.core.DeleteByQueryResponse;
+import co.elastic.clients.elasticsearch.core.IndexRequest;
+import co.elastic.clients.elasticsearch.core.IndexResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.util.ObjectBuilder;
@@ -54,6 +58,55 @@ public class ElasticsearchTemplateHelper {
 		} catch (Exception e) {
 			// 兜底攔截：捕捉反序列化或其他未知的 RuntimeException
 			log.error("[ES 未知異常] {}", errorMessage, e);
+			throw new KnowledgeSearchException(errorMessage + " (系統發生未知錯誤)", e);
+		}
+	}
+
+	/**
+	 * 安全執行 ES 條件刪除請求 (Delete By Query)
+	 * 
+	 * @param requestBuilder 刪除請求建造者函數
+	 * @param errorMessage   發生異常時拋出的業務錯誤訊息
+	 * @return 刪除結果 Response
+	 */
+	public DeleteByQueryResponse executeDeleteByQuery(
+			Function<DeleteByQueryRequest.Builder, ObjectBuilder<DeleteByQueryRequest>> requestBuilder,
+			String errorMessage) {
+		try {
+			return esClient.deleteByQuery(requestBuilder);
+		} catch (ElasticsearchException e) {
+			log.error("[ES 刪除引擎異常] {} | 錯誤類型: {} | 錯誤原因: {}", errorMessage, e.response().error().type(),
+					e.response().error().reason(), e);
+			throw new KnowledgeSearchException(errorMessage + " (引擎刪除失敗)", e);
+		} catch (IOException e) {
+			log.error("[ES 刪除網路異常] {} | 可能是叢集連線失敗或 Timeout", errorMessage, e);
+			throw new KnowledgeSearchException(errorMessage + " (網路連線異常)", e);
+		} catch (Exception e) {
+			log.error("[ES 刪除未知異常] {}", errorMessage, e);
+			throw new KnowledgeSearchException(errorMessage + " (系統發生未知錯誤)", e);
+		}
+	}
+
+	/**
+	 * 安全執行 ES 單筆寫入請求 (Index)
+	 *
+	 * @param requestBuilder 寫入請求建造者函數
+	 * @param errorMessage   發生異常時拋出的業務錯誤訊息
+	 * @return 寫入結果 Response
+	 */
+	public <T> IndexResponse executeIndex(
+			Function<IndexRequest.Builder<T>, ObjectBuilder<IndexRequest<T>>> requestBuilder, String errorMessage) {
+		try {
+			return esClient.index(requestBuilder);
+		} catch (ElasticsearchException e) {
+			log.error("[ES 寫入引擎異常] {} | 錯誤類型: {} | 錯誤原因: {}", errorMessage, e.response().error().type(),
+					e.response().error().reason(), e);
+			throw new KnowledgeSearchException(errorMessage + " (引擎寫入失敗)", e);
+		} catch (IOException e) {
+			log.error("[ES 寫入網路異常] {} | 可能是叢集連線失敗或 Timeout", errorMessage, e);
+			throw new KnowledgeSearchException(errorMessage + " (網路連線異常)", e);
+		} catch (Exception e) {
+			log.error("[ES 寫入未知異常] {}", errorMessage, e);
 			throw new KnowledgeSearchException(errorMessage + " (系統發生未知錯誤)", e);
 		}
 	}

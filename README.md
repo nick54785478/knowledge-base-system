@@ -54,6 +54,10 @@
 
 > 結合 System Prompt 嚴格限制 AI 僅能根據企業知識庫的檢索內容回答。若無相關資料，系統會優雅地回覆無法回答，拒絕捏造事實，確保企業資訊的準確性。
 
+* **語意快取 (Semantic Cache)**:
+
+> 在進入大模型生成前，系統會將使用者的問題向量化，並至 Elasticsearch (`qa_semantic_cache`) 中比對是否有高度相似（例如相似度 > 0.95）的歷史提問。若命中快取則直接回傳解答，大幅降低 API 成本與延遲，並在知識庫異動時自動清空以防止幻覺。
+
 * **WebSocket 雙向通訊串流 (Real-time Streaming)**:
 
 > 捨棄傳統的 HTTP 請求，採用全雙工的 WebSocket 建立連線。讓 AI 生成的字元能像「打字機」一般即時推播至前端，並透過 [DONE] 標記實現精準的狀態控制，提供零等待的順暢使用者體驗 (Time to First Token < 1s)。
@@ -83,9 +87,9 @@
 	docker exec -it kb_ollama ollama pull qwen2.5:7b
 	docker exec -it kb_ollama ollama pull nomic-embed-text:latest
 	
-**3. 初始化 Elasticsearch 向量索引**
+**3. 初始化 Elasticsearch 向量索引與語意快取索引**
 
-因 ES 9.x 版本差異，請進入 Kibana Dev Tools (http://localhost:5601) 執行以下 DDL 建立 Index：
+因 ES 9.x 版本差異，請進入 Kibana Dev Tools (http://localhost:5601) 執行以下 DDL 建立知識庫與快取的 Index：
 
 	PUT /knowledge_vector
 	{
@@ -97,6 +101,18 @@
 	      "content": { "type": "text" },
 	      "category": { "type": "keyword" },
 	      "author": { "type": "keyword" }
+	    }
+	  }
+	}
+
+	PUT /qa_semantic_cache
+	{
+	  "mappings": {
+	    "properties": {
+	      "embedding_vector": { "type": "dense_vector", "dims": 768, "index": true, "similarity": "cosine" },
+	      "question": { "type": "text" },
+	      "answer": { "type": "text" },
+	      "created_at": { "type": "date" }
 	    }
 	  }
 	}

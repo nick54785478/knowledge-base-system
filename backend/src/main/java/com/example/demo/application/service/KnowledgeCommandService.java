@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.application.domain.knowledege.aggregate.KnowledgeDocument;
+import com.example.demo.application.port.SemanticCacheManagerPort;
 import com.example.demo.application.shared.command.ChangeDocumentCategoryCommand;
 import com.example.demo.application.shared.command.CreateKnowledgeCommand;
 import com.example.demo.application.shared.command.UpdateKnowledgeCommand;
@@ -28,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class KnowledgeCommandService {
 
 	private final KnowledgeDocumentRepository repository;
-
+	private final SemanticCacheManagerPort semanticCachePort;
+	
 	/**
 	 * 建立並直接發布新的知識庫文檔。
 	 * 
@@ -52,6 +54,9 @@ public class KnowledgeCommandService {
 		document.publish();
 		repository.save(document);
 		log.info("Command: 成功寫入，ID: {}", document.getId());
+		
+		// 🌟 觸發快取失效 (Cache Invalidation)
+        semanticCachePort.clearAllCache();
 		return document.getId();
 	}
 
@@ -90,6 +95,9 @@ public class KnowledgeCommandService {
 		// 但為了語意明確，我們依然呼叫 save。
 		repository.save(document);
 		log.info("Command: 成功更新 PostgreSQL，ID: {}", document.getId());
+		
+		// 🌟 觸發快取失效 (Cache Invalidation)
+        semanticCachePort.clearAllCache();
 	}
 
 	/**
